@@ -1,42 +1,42 @@
 #!/bin/bash
 
-# .edgerc ファイルから変数を読み込む関数
+# Function to load variables from the .edgerc file
 CLIENT_TOKEN="`grep client_token $HOME/.edgerc | awk '{print $3}'`"
 CLIENT_SECRET="`grep client_secret $HOME/.edgerc | awk '{print $3}'`"
 ACCESS_TOKEN="`grep access_token $HOME/.edgerc | awk '{print $3}'`"
 MAX_BODY=131072
 
-# HMAC-SHA256をBase64でエンコードする関数
+# Function to encode HMAC-SHA256 in Base64
 hmac_sha256_base64() {
     local data="$1"
     local key="$2"
     echo -n "$data" | openssl dgst -binary -sha256 -hmac "$key" | openssl base64 | tr -d '\n'
 }
 
-# SHA256をBase64でエンコードする関数
+# Function to encode SHA256 in Base64
 sha256_base64() {
     local data="$1"
     echo -n "$data" | openssl dgst -binary -sha256 | openssl base64 | tr -d '\n'
 }
 
-# タイムスタンプを生成する関数
+# Function to generate a timestamp
 generate_timestamp() {
     date -u +"%Y%m%dT%H:%M:%S+0000"
 }
 
-# ノンス（UUID）を生成する関数
+# Function to generate a nonce (UUID)
 generate_nonce() {
     uuidgen | tr -d '-'
 }
 
-# サインキーを生成する関数
+# Function to create a signing key
 create_signing_key() {
     local timestamp="$1"
     local client_secret="$2"
     hmac_sha256_base64 "$timestamp" "$client_secret"
 }
 
-# コンテンツハッシュを生成する関数
+# Function to generate a content hash
 make_content_hash() {
     local method="$1"
     local body="$2"
@@ -52,7 +52,7 @@ make_content_hash() {
     fi
 }
 
-# 署名用のデータを作成する関数
+# Function to create data for signing
 make_data_to_sign() {
     local method="$1"
     local scheme="$2"
@@ -64,14 +64,14 @@ make_data_to_sign() {
     echo -ne "$method\t$scheme\t$host\t$path_query\t$headers\t$content_hash\t$auth_header"
 }
 
-# リクエストに署名する関数
+# Function to sign the request
 sign_request() {
     local data_to_sign="$1"
     local signing_key="$2"
     hmac_sha256_base64 "$data_to_sign" "$signing_key"
 }
 
-# 認証ヘッダーを作成する関数
+# Function to create the authentication header
 make_auth_header() {
     local client_token="$1"
     local access_token="$2"
@@ -81,7 +81,7 @@ make_auth_header() {
     echo "EG1-HMAC-SHA256 client_token=$client_token;access_token=$access_token;timestamp=$timestamp;nonce=$nonce;signature=$signature"
 }
 
-# URLを解析する関数
+# Function to parse the URL
 parse_url() {
     local url="$1"
     scheme="$(echo "$url" | awk -F:// '{print $1}')"
@@ -90,9 +90,9 @@ parse_url() {
     path_query="/$(echo "$rest" | cut -d/ -f2-)"
 }
 
-# メイン処理
+# Main processing
 main() {
-    # リクエストのメソッド、ヘッダー、データ、URLを取得
+    # Retrieve the request method, headers, data, and URL
     METHOD="GET"
     DATA=""
     HEADERS=()
@@ -134,7 +134,7 @@ main() {
 
     parse_url "$URL"
 
-    # ヘッダーの正規化はここでは省略しています
+    # Header normalization is omitted here
     canonicalized_headers=""
 
     content_hash=$(make_content_hash "$METHOD" "$DATA" "$MAX_BODY")
@@ -145,7 +145,7 @@ main() {
 
     auth_header=$(make_auth_header "$CLIENT_TOKEN" "$ACCESS_TOKEN" "$timestamp" "$nonce" "$signature")
 
-    # リクエストを送信
+    # Send the request
     if [ "$METHOD" == "GET" ]; then
         curl -X "$METHOD" -H "Authorization: $auth_header" "$URL"
     elif [ "$METHOD" == "POST" ]; then

@@ -1,4 +1,4 @@
-# Akamai GTM プロパティ取得スクリプト
+# Akamai プロパティ取得スクリプト
 
 このスクリプトは、Akamai API を使用して GTM（Global Traffic Management）のプロパティ情報を取得し、各プロパティを個別の整形された JSON ファイルとして保存します。
 

@@ -66,10 +66,10 @@ sudo yum install jq
    - `.edgerc` ファイルに `[default]` セクションが存在し、必要なアクセス情報（host、client_secret、client_token、access_token）が記載されていることを確認してください。
 ```
 [default]
-client_secret = C113nt53KR3TN6N90yVuAgICxIRwsObLi0E67/N8eRN=
-host = akab-h05tnam3wl42son7nktnlnnx-kbob3i3v.luna.akamaiapis.net
-access_token = akab-acc35t0k3nodujqunph3w7hzp7-gtm6ij
-client_token = akab-c113ntt0k3n4qtari252bfxxbsl-yvsdj
+client_secret = C113nt53KR3TN6N90xxxxxxxxxxxxxxxxxxxxxN8eRN=
+host = akab-xxxxxxxxxxxxxxxxxxx-kbob3i3v.luna.akamaiapis.net
+access_token = akab-acc35t0k3nxxxxxxxxxxxxxxxx-gtm6ij
+client_token = akab-c113ntt0k3xxxxxxxxxxxxxxxsl-yvsdj
 ```
 
 - `your_client_token`、`your_client_secret`、`your_access_token`、`your_host` を自身の認証情報に置き換えてください。

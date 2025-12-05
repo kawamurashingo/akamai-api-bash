@@ -61,13 +61,15 @@ sudo yum install jq
 ```
 
 ### `.edgerc` ファイルの設定
-
-ホームディレクトリに `.edgerc` ファイルを作成し、以下の内容で認証情報を記述します。
-
+   - [認証情報の作成](https://techdocs.akamai.com/developer/docs/set-up-authentication-credentials)
+   - スクリプトは、必要なAkamai API認証情報を含むホームディレクトリ（`$HOME/.edgerc`）内の`.edgerc`ファイルを必要とします。
+   - `.edgerc` ファイルに `[default]` セクションが存在し、必要なアクセス情報（host、client_secret、client_token、access_token）が記載されていることを確認してください。
 ```
-client_token = your_client_token
-client_secret = your_client_secret
-access_token = your_access_token
+[default]
+client_secret = C113nt53KR3TN6N90yVuAgICxIRwsObLi0E67/N8eRN=
+host = akab-h05tnam3wl42son7nktnlnnx-kbob3i3v.luna.akamaiapis.net
+access_token = akab-acc35t0k3nodujqunph3w7hzp7-gtm6ij
+client_token = akab-c113ntt0k3n4qtari252bfxxbsl-yvsdj
 host = your_host
 ```
 

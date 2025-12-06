@@ -1,11 +1,13 @@
 # Akamai API Bash Scripts
 
-このリポジトリには、Akamai API を使用してプロパティ情報を取得し、ファイルに保存するための 2 つの Bash スクリプトが含まれています。
+このリポジトリには、Akamai API を使用してプロパティ情報を取得し、ファイルに保存または一覧出力するための 3 つの Bash スクリプトが含まれています。
 
 1. **GTM プロパティ取得スクリプト**
    - Akamai GTM（Global Traffic Management）のプロパティ情報を取得し、各プロパティを個別の JSON ファイルとして保存します。
 2. **PAPI プロパティルール取得スクリプト**
    - Akamai PAPI（Property Manager API）を使用してプロパティのルール情報を取得し、ステージングおよびプロダクション環境の設定を JSON ファイルとして保存します。
+3. **Bot Manager 設定一覧スクリプト**
+   - AppSec の Security Policy 単位で Bot Manager（applyBotmanControls）が有効なホスト名を一覧出力します。
 
 ## 前提条件
 
@@ -26,9 +28,11 @@
 - [スクリプトの詳細](#スクリプトの詳細)
   - [1. GTM プロパティ取得スクリプト](#1-gtm-プロパティ取得スクリプト)
   - [2. PAPI プロパティルール取得スクリプト](#2-papi-プロパティルール取得スクリプト)
+  - [3. Bot Manager 設定一覧スクリプト](#3-bot-manager-設定一覧スクリプト)
 - [実行方法](#実行方法)
   - [GTM プロパティ取得スクリプトの実行](#gtm-プロパティ取得スクリプトの実行)
   - [PAPI プロパティルール取得スクリプトの実行](#papi-プロパティルール取得スクリプトの実行)
+  - [Bot Manager 設定一覧スクリプトの実行](#bot-manager-設定一覧スクリプトの実行)
 - [注意事項](#注意事項)
 - [トラブルシューティング](#トラブルシューティング)
 - [ライセンス](#ライセンス)
@@ -39,6 +43,7 @@
 
 - `gtm_property_fetch.sh`：GTM プロパティ取得スクリプト
 - `papi_property_fetch.sh`：PAPI プロパティルール取得スクリプト
+- `list_botman_properties.sh`：Bot Manager 設定一覧スクリプト
 - `akamai_edgegrid.sh`：Akamai EdgeGrid 認証を行うためのスクリプト
 - `README.md`：このファイル
 
@@ -151,6 +156,34 @@ OUTPUT_DIR="property"
 echo "$STAGING_RULES_JSON" > "$DIR_NAME/staging.json"
 ```
 
+### 3. Bot Manager 設定一覧スクリプト
+
+ファイル名：`list_botman_properties.sh`
+
+#### 概要
+
+- AppSec 設定に紐づく Security Policy を走査し、Bot Manager（`applyBotmanControls`）が有効なホスト名を `property,applyBotmanControls(environment)` 形式で標準出力に一覧します。
+
+#### 主な機能
+
+- **Config の Security Policy を取得**（`staging` または `production` のいずれかを選択可能）
+- **Policy 名に含まれるホスト名を抽出**
+- **Bot Manager が有効なホストのみを CSV 形式で出力**
+- **Config ID を指定して対象を絞り込み可能**
+
+#### 出力
+
+- 標準出力に `example.com,true` のような行を出力します。複数ホストがある場合はホストごとに行を分けます。
+
+#### スクリプトの一部
+
+```bash
+echo "# property,applyBotmanControls(${ENV})"
+
+# Config list
+CONFIGS_JSON=$(./akamai_edgegrid.sh -X GET "$BASE_URL/appsec/v1/configs")
+```
+
 ---
 
 ## 実行方法
@@ -186,6 +219,29 @@ echo "$STAGING_RULES_JSON" > "$DIR_NAME/staging.json"
    ```
 
 3. 実行が完了すると、`property` ディレクトリ内に各プロパティのルール情報が保存されます。
+
+### Bot Manager 設定一覧スクリプトの実行
+
+1. スクリプトに実行権限を付与します。
+
+   ```bash
+   chmod +x list_botman_properties.sh
+   ```
+
+2. 環境（`staging` または `production`）や Config ID を必要に応じて指定して実行します。
+
+   ```bash
+   # 例1: ステージングの全 Config を確認
+   ./list_botman_properties.sh
+
+   # 例2: プロダクション環境のみ
+   ./list_botman_properties.sh production
+
+   # 例3: 特定の Config ID をプロダクションで確認
+   ./list_botman_properties.sh 12345 production
+   ```
+
+3. 標準出力に Bot Manager が有効なホスト一覧が表示されます。リダイレクトしてファイル保存も可能です。
 
 ---
 

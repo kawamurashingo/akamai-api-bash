@@ -1,13 +1,11 @@
 # Akamai API Bash Scripts
 
-このリポジトリには、Akamai API を使用してプロパティ情報を取得し、ファイルに保存するための 3 つの Bash スクリプトが含まれています。
+このリポジトリには、Akamai API を使用してプロパティ情報を取得し、ファイルに保存するための 2 つの Bash スクリプトが含まれています。
 
 1. **GTM プロパティ取得スクリプト**
    - Akamai GTM（Global Traffic Management）のプロパティ情報を取得し、各プロパティを個別の JSON ファイルとして保存します。
 2. **PAPI プロパティルール取得スクリプト**
    - Akamai PAPI（Property Manager API）を使用してプロパティのルール情報を取得し、ステージングおよびプロダクション環境の設定を JSON ファイルとして保存します。
-3. **Bot Manager 設定取得スクリプト**
-   - AppSec（Bot Manager）で使用するセキュリティポリシー単位の設定を取得し、ステージングおよびプロダクションの内容を JSON ファイルとして保存します。
 
 ## 前提条件
 
@@ -28,11 +26,9 @@
 - [スクリプトの詳細](#スクリプトの詳細)
   - [1. GTM プロパティ取得スクリプト](#1-gtm-プロパティ取得スクリプト)
   - [2. PAPI プロパティルール取得スクリプト](#2-papi-プロパティルール取得スクリプト)
-  - [3. Bot Manager 設定取得スクリプト](#3-bot-manager-設定取得スクリプト)
 - [実行方法](#実行方法)
   - [GTM プロパティ取得スクリプトの実行](#gtm-プロパティ取得スクリプトの実行)
   - [PAPI プロパティルール取得スクリプトの実行](#papi-プロパティルール取得スクリプトの実行)
-  - [Bot Manager 設定取得スクリプトの実行](#bot-manager-設定取得スクリプトの実行)
 - [注意事項](#注意事項)
 - [トラブルシューティング](#トラブルシューティング)
 - [ライセンス](#ライセンス)
@@ -43,7 +39,6 @@
 
 - `gtm_property_fetch.sh`：GTM プロパティ取得スクリプト
 - `papi_property_fetch.sh`：PAPI プロパティルール取得スクリプト
-- `bot_manager_fetch.sh`：Bot Manager 設定取得スクリプト
 - `akamai_edgegrid.sh`：Akamai EdgeGrid 認証を行うためのスクリプト
 - `README.md`：このファイル
 
@@ -156,34 +151,6 @@ OUTPUT_DIR="property"
 echo "$STAGING_RULES_JSON" > "$DIR_NAME/staging.json"
 ```
 
-### 3. Bot Manager 設定取得スクリプト
-
-ファイル名：`bot_manager_fetch.sh`
-
-#### 概要
-
-- AppSec Config に含まれる各セキュリティポリシーの Bot Manager 設定を取得します。
-- ステージングおよびプロダクションバージョンが存在する場合は両方の設定を保存します。
-
-#### 主な機能
-
-- **AppSec Config の一覧取得**
-- **各 Config のステージング/プロダクションバージョンに紐づくセキュリティポリシーの取得**
-- **Bot Manager 設定の取得と保存**
-
-#### 出力
-
-- ディレクトリ名：`bot_manager`
-- 各 Config ごとにサブディレクトリが作成され、`staging` と `production` 配下にポリシーごとの JSON ファイルが保存されます。
-
-#### スクリプトの一部
-
-```bash
-# Bot Manager 設定を保存
-SETTINGS_JSON=$(./akamai_edgegrid.sh -X GET "$BASE_URL/appsec/v1/configs/$CONFIG_ID/versions/$VERSION/security-policies/$POLICY_ID/protections/bot-management")
-echo "$SETTINGS_JSON" | jq '.' > "$OUTPUT_FILE"
-```
-
 ---
 
 ## 実行方法
@@ -219,22 +186,6 @@ echo "$SETTINGS_JSON" | jq '.' > "$OUTPUT_FILE"
    ```
 
 3. 実行が完了すると、`property` ディレクトリ内に各プロパティのルール情報が保存されます。
-
-### Bot Manager 設定取得スクリプトの実行
-
-1. スクリプトに実行権限を付与します。
-
-   ```bash
-   chmod +x bot_manager_fetch.sh
-   ```
-
-2. スクリプトを実行します。
-
-   ```bash
-   ./bot_manager_fetch.sh
-   ```
-
-3. 実行が完了すると、`bot_manager` ディレクトリ内に各 Config のセキュリティポリシーごとの設定が保存されます。
 
 ---
 

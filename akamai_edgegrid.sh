@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Function to load variables from the .edgerc file
-CLIENT_TOKEN="`grep client_token $HOME/.edgerc | awk '{print $3}'`"
-CLIENT_SECRET="`grep client_secret $HOME/.edgerc | awk '{print $3}'`"
-ACCESS_TOKEN="`grep access_token $HOME/.edgerc | awk '{print $3}'`"
+CLIENT_TOKEN="$(grep client_token "$HOME/.edgerc" | awk '{print $3}')"
+CLIENT_SECRET="$(grep client_secret "$HOME/.edgerc" | awk '{print $3}')"
+ACCESS_TOKEN="$(grep access_token "$HOME/.edgerc" | awk '{print $3}')"
 MAX_BODY=131072
 
 # Function to encode HMAC-SHA256 in Base64
@@ -41,7 +41,7 @@ make_content_hash() {
     local method="$1"
     local body="$2"
     local max_body="$3"
-    if [ "$method" == "POST" ] && [ -n "$body" ]; then
+    if [ "$method" = "POST" ] && [ -n "$body" ]; then
         local body_length=${#body}
         if [ "$body_length" -gt "$max_body" ]; then
             body="${body:0:$max_body}"
@@ -90,29 +90,27 @@ parse_url() {
     path_query="/$(echo "$rest" | cut -d/ -f2-)"
 }
 
-# Main processing
 main() {
-    # Retrieve the request method, headers, data, and URL
     METHOD="GET"
     DATA=""
     HEADERS=()
+    URL=""
+
+    # parse args (簡易 curl ラッパ)
     while [[ $# -gt 0 ]]; do
         key="$1"
-        case $key in
+        case "$key" in
             -X)
                 METHOD="$2"
-                shift
-                shift
+                shift 2
                 ;;
             -H)
                 HEADERS+=("$2")
-                shift
-                shift
+                shift 2
                 ;;
-            --data)
+            --data|-d)
                 DATA="$2"
-                shift
-                shift
+                shift 2
                 ;;
             *)
                 URL="$1"
@@ -122,7 +120,7 @@ main() {
     done
 
     if [ -z "$URL" ]; then
-        echo "Usage: $0 -X METHOD -H 'Header: Value' --data 'DATA' URL"
+        echo "Usage: $0 -X METHOD [-H 'Header: Value'] [--data 'DATA'] URL" >&2
         exit 1
     fi
 
@@ -145,15 +143,23 @@ main() {
 
     auth_header=$(make_auth_header "$CLIENT_TOKEN" "$ACCESS_TOKEN" "$timestamp" "$nonce" "$signature")
 
-    # Send the request
-    if [ "$METHOD" == "GET" ]; then
-        curl -X "$METHOD" -H "Authorization: $auth_header" "$URL"
-    elif [ "$METHOD" == "POST" ]; then
-        curl -X "$METHOD" -H "Authorization: $auth_header" --data "$DATA" "$URL"
+    # curl 実行引数を配列で構築（サイレント -sS）
+    curl_args=( -sS -X "$METHOD" -H "Authorization: $auth_header" )
+
+    # ユーザ指定ヘッダもちゃんと付ける
+    for h in "${HEADERS[@]}"; do
+        curl_args+=( -H "$h" )
+    done
+
+    if [ "$METHOD" = "GET" ]; then
+        curl "${curl_args[@]}" "$URL"
+    elif [ "$METHOD" = "POST" ]; then
+        curl "${curl_args[@]}" --data "$DATA" "$URL"
     else
-        echo "Unsupported method: $METHOD"
+        echo "Unsupported method: $METHOD" >&2
         exit 1
     fi
 }
 
 main "$@"
+
